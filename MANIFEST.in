@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+include requirements.txt
+include requirements-dev.txt
+recursive-include src/helper_plot_hangul/fonts *.ttf
