@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "helper-plot-hangul"
-version = "1.0.0"
+version = "0.5.0"
 description = "Matplotlib 한글 폰트 자동 설정 라이브러리"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -41,9 +41,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/c0z0c/helper_plot_hangul"
-Repository = "https://github.com/c0z0c/helper_plot_hangul"
-Issues = "https://github.com/c0z0c/helper_plot_hangul/issues"
+Homepage = "https://github.com/c0z0c-helper/helper_plot_hangul"
+Repository = "https://github.com/c0z0c-helper/helper_plot_hangul"
+Issues = "https://github.com/c0z0c-helper/helper_plot_hangul/issues"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
