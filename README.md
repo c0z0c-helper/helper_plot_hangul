@@ -180,7 +180,7 @@ MIT License
 
 ## 기여
 
-버그 리포트나 기능 제안은 [GitHub Issues](https://github.com/c0z0c/helper_plot_hangul/issues)에 등록해주세요.
+버그 리포트나 기능 제안은 [GitHub Issues](https://github.com/c0z0c-helper/helper_plot_hangul/issues)에 등록해주세요.
 
 ## 변경 이력
 
@@ -190,6 +190,9 @@ MIT License
 - matplotlib 완전 리셋 기능
 - 스타일 호환성 자동 패치
 - Jupyter/Colab 최적화
+
+### v0.5.1(2025-12-09)
+- github 주소 변경
 
 ---
 

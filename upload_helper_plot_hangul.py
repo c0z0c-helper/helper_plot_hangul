@@ -16,27 +16,27 @@ from pathlib import Path
 
 def clean_build():
     """빌드 디렉토리 정리"""
-    print("🧹 빌드 디렉토리 정리 중...")
+    print("빌드 디렉토리 정리 중...")
     dirs_to_clean = ["build", "dist", "*.egg-info"]
     for pattern in dirs_to_clean:
         for path in Path(".").glob(pattern):
             if path.is_dir():
                 shutil.rmtree(path)
                 print(f"   삭제: {path}")
-    print("✅ 정리 완료\n")
+    print("정리 완료\n")
 
 
 def build_package():
     """패키지 빌드"""
-    print("📦 패키지 빌드 중...")
+    print("패키지 빌드 중...")
     result = subprocess.run([sys.executable, "-m", "build"], capture_output=True, text=True)
     
     if result.returncode != 0:
-        print("❌ 빌드 실패:")
+        print("빌드 실패:")
         print(result.stderr)
         sys.exit(1)
     
-    print("✅ 빌드 완료\n")
+    print("빌드 완료\n")
     return result
 
 
@@ -55,10 +55,10 @@ def upload_package(test_mode=False):
     result = subprocess.run(cmd)
     
     if result.returncode != 0:
-        print(f"❌ {repo_name} 업로드 실패")
+        print(f"{repo_name} 업로드 실패")
         sys.exit(1)
     
-    print(f"✅ {repo_name} 업로드 완료\n")
+    print(f"{repo_name} 업로드 완료\n")
 
 
 def main():
@@ -88,7 +88,7 @@ def main():
         print("   pip install helper-plot-hangul")
     
     print()
-    print("🎉 모든 작업 완료!")
+    print("모든 작업 완료!")
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ def test_local_install():
     print()
     
     # 2. 패키지 설치 (편집 모드)
-    print("📦 패키지 설치 중 (편집 모드)...")
+    print("패키지 설치 중 (편집 모드)...")
     result = subprocess.run(
         [sys.executable, "-m", "pip", "install", "-e", "."],
         cwd=current_dir,
@@ -32,20 +32,20 @@ def test_local_install():
     )
     
     if result.returncode != 0:
-        print("❌ 설치 실패:")
+        print("설치 실패:")
         print(result.stderr)
         sys.exit(1)
     
-    print("✅ 설치 완료")
+    print("설치 완료")
     print()
     
     # 3. 임포트 테스트
     print("🧪 임포트 테스트...")
     try:
         from helper_plot_hangul import matplotlib_font_reset, matplotlib_font_set, __version__
-        print(f"✅ 임포트 성공 (버전: {__version__})")
+        print(f"임포트 성공 (버전: {__version__})")
     except ImportError as e:
-        print(f"❌ 임포트 실패: {e}")
+        print(f"임포트 실패: {e}")
         sys.exit(1)
     
     print()
@@ -54,20 +54,20 @@ def test_local_install():
     print("🧪 기본 기능 테스트...")
     try:
         plt = matplotlib_font_reset()
-        print("✅ matplotlib_font_reset() 성공")
+        print("matplotlib_font_reset() 성공")
         
         # 간단한 플롯 생성 (표시 안함)
         fig = plt.figure()
         plt.plot([1, 2, 3], [1, 4, 9])
         plt.title('한글 테스트')
         plt.close(fig)
-        print("✅ 한글 플롯 생성 성공")
+        print("한글 플롯 생성 성공")
     except Exception as e:
-        print(f"❌ 기능 테스트 실패: {e}")
+        print(f"기능 테스트 실패: {e}")
         sys.exit(1)
     
     print()
-    print("🎉 모든 테스트 통과!")
+    print("모든 테스트 통과!")
 
 
 if __name__ == "__main__":
