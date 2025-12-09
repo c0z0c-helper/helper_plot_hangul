@@ -19,6 +19,9 @@ Matplotlib 한글 폰트 자동 설정 라이브러리
 
 ```bash
 pip install helper-plot-hangul
+
+# 테스트 서버
+pip install --index-url https://test.pypi.org/simple/ helper-plot-hangul
 ```
 
 ## 사용법
@@ -187,3 +190,9 @@ MIT License
 - matplotlib 완전 리셋 기능
 - 스타일 호환성 자동 패치
 - Jupyter/Colab 최적화
+
+---
+
+jupyter_hangul를 참고하여 만들어졌습니다.
+- https://c0z0c.github.io/jupyter_hangul/
+

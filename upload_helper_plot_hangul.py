@@ -45,7 +45,7 @@ def upload_package(test_mode=False):
     repository = "testpypi" if test_mode else "pypi"
     repo_name = "TestPyPI" if test_mode else "PyPI"
     
-    print(f"🚀 {repo_name}에 업로드 중...")
+    print(f"{repo_name}에 업로드 중...")
     
     cmd = [sys.executable, "-m", "twine", "upload"]
     if test_mode:
@@ -81,10 +81,10 @@ def main():
     
     # 4. 완료 메시지
     if test_mode:
-        print("📝 TestPyPI에서 설치 테스트:")
+        print("TestPyPI에서 설치 테스트:")
         print("   pip install --index-url https://test.pypi.org/simple/ helper-plot-hangul")
     else:
-        print("📝 PyPI에서 설치:")
+        print("PyPI에서 설치:")
         print("   pip install helper-plot-hangul")
     
     print()
