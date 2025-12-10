@@ -218,9 +218,34 @@ def matplotlib_font_set(font_family: str | None = None, font_path: str | None = 
         matplotlib rcParams에 전달할 추가 설정
     """
     import matplotlib.pyplot as _plt
+    import matplotlib.font_manager as fm
     
     default_kwargs = {'axes.unicode_minus': False, 'font.size': 10}
     default_kwargs.update(kwargs)
+    
+    # font_path가 없고 font_family도 없으면 자동 탐색 (matplotlib_font_reset과 동일 로직)
+    if font_path is None and font_family is None:
+        font_family = 'NanumGothic'
+        # 1. 개발 환경: 로컬 fonts 폴더 확인
+        local_font_path = Path(__file__).parent / "fonts" / "NanumGothic.ttf"
+        
+        if local_font_path.exists():
+            font_path = str(local_font_path)
+        else:
+            # 2. pip 배포 환경: 패키지 내부 fonts 폴더
+            try:
+                import importlib.resources as resources
+                font_path = str(resources.files("helper_plot_hangul").joinpath("fonts/NanumGothic.ttf"))
+            except Exception:
+                font_path = None
+        
+        # 3. 시스템 폰트 폴백 (Windows: Malgun Gothic)
+        if font_path is None or not Path(font_path).exists():
+            if sys.platform.startswith('win'):
+                font_family = 'Malgun Gothic'
+            logger.debug(f"로컬 폰트 없음, 시스템 폰트 사용: {font_family}")
+        else:
+            logger.debug(f"자동 탐색된 폰트 경로: {font_path}")
     
     globals()["_preferred_font_path"] = font_path
     globals()["_preferred_font_family"] = font_family
@@ -235,7 +260,35 @@ def matplotlib_font_set(font_family: str | None = None, font_path: str | None = 
         globals()["_style_patched"] = True
 
 
-matplotlib_font_reset()
+def _is_jupyter_environment() -> bool:
+    """Jupyter/IPython 환경 여부 확인"""
+    try:
+        get_ipython()
+        return True
+    except NameError:
+        return False
+
+
+def _is_streamlit_environment() -> bool:
+    """Streamlit 환경 여부 확인"""
+    try:
+        import streamlit.runtime.scriptrunner.script_run_context as script_run_context
+        return script_run_context.get_script_run_ctx() is not None
+    except Exception:
+        return False
+
+
+# 환경별 자동 초기화
+if _is_jupyter_environment():
+    matplotlib_font_reset()
+    logger.info("Jupyter/IPython 환경 감지: matplotlib_font_reset() 실행")
+elif _is_streamlit_environment():
+    matplotlib_font_set()
+    logger.info("Streamlit 환경 감지: matplotlib_font_set() 실행")
+else:
+    matplotlib_font_set()
+    logger.info("기타 환경: matplotlib_font_set() 실행")
+
 
 # 예시 사용법
 if __name__ == "__main__":

@@ -194,6 +194,10 @@ MIT License
 ### v0.5.1(2025-12-09)
 - github 주소 변경
 
+### v0.5.2(2025-12-10)
+- jyupyter, colab 에서만 plot reset
+- 다른 환경에서는 폰트만 로딩
+
 ---
 
 jupyter_hangul를 참고하여 만들어졌습니다.
