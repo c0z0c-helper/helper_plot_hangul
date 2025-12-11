@@ -11,15 +11,15 @@ Matplotlib 한글 폰트 자동 설정 라이브러리
 - Jupyter/Colab 최적화: IPython 환경에서 완벽하게 작동
 
 기본 사용법:
+    import matplotlib.pyplot as plt
     from helper_plot_hangul import matplotlib_font_reset
-    
-    plt = matplotlib_font_reset()
+
     plt.plot([1, 2, 3], [1, 4, 9])
     plt.title('한글 제목')
     plt.show()
 """
 
-__version__ = "0.5.2"
+__version__ = "0.5.3"
 
 from .helper_plot_hangul import matplotlib_font_reset, matplotlib_font_set
 

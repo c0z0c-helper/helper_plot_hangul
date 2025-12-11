@@ -198,6 +198,9 @@ MIT License
 - jyupyter, colab 에서만 plot reset
 - 다른 환경에서는 폰트만 로딩
 
+### v0.5.3(2025-12-11)
+- 종속 라이브러리 설치
+
 ---
 
 jupyter_hangul를 참고하여 만들어졌습니다.
