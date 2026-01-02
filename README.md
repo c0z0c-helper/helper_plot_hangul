@@ -169,6 +169,24 @@ plt = matplotlib_font_reset(font_family='D2Coding')
 plt = matplotlib_font_reset(font_path='/usr/share/fonts/custom.ttf')
 ```
 
+### 사용되는 한글 폰트 경로 가져오기
+
+```python
+from PIL import ImageFont
+import reportlab.pdfbase.ttfonts as ttfonts
+
+# 한글 폰트 가져오기
+font_info = matplotlib_font_get()
+
+# PIL에서 사용
+if font_info['font_path']:
+    pil_font = ImageFont.truetype(font_info['font_path'], size=12)
+
+# ReportLab에서 사용
+if font_info['font_path']:
+    reportlab_font = ttfonts.TTFont('Hangul', font_info['font_path'])
+```
+
 ## 요구사항
 
 - Python >= 3.8
@@ -200,6 +218,9 @@ MIT License
 
 ### v0.5.3(2025-12-11)
 - 종속 라이브러리 설치
+
+### v0.5.5(2026-01-02)
+- 사용되는 한글 폰트 경로 가져오기
 
 ---
 

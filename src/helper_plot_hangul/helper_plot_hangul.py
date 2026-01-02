@@ -33,12 +33,15 @@ except ImportError:
     IPYTHON_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.WARNING)  # INFO 메시지 숨김, 경고 이상만 표시
 if not logger.handlers:
     sh = logging.StreamHandler()
     sh.setLevel(logger.level)
     sh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s [%(name)s] %(message)s"))
     logger.addHandler(sh)
+
+# ZIP 배포 환경에서 폰트 파일 유지를 위한 전역 컨텍스트
+_font_file_context = None
 
 
 def matplotlib_font_reset(
@@ -109,16 +112,40 @@ def matplotlib_font_reset(
         local_font_path = Path(__file__).parent / "fonts" / "NanumGothic.ttf"
 
         if local_font_path.exists():
-            font_path = str(local_font_path)
+            font_path = str(local_font_path.resolve())  # 절대 경로로 변환
         else:
             # 2. pip 배포 환경: 패키지 내부 fonts 폴더
             try:
-                font_path = str(
-                    resources.files("helper_plot_hangul").joinpath("fonts/NanumGothic.ttf")
+                pkg_font_path = resources.files("helper_plot_hangul").joinpath(
+                    "fonts/NanumGothic.ttf"
                 )
+                # resources는 가상 경로일 수 있으므로 as_file로 실제 경로 확보
+                # 전역 컨텍스트로 유지하여 ZIP 배포 시에도 파일이 삭제되지 않도록 함
+                global _font_file_context
+                if _font_file_context is None:
+                    _font_file_context = resources.as_file(pkg_font_path)
+                    real_path = _font_file_context.__enter__()
+                    font_path = str(real_path.resolve())
+                else:
+                    # 이미 열린 컨텍스트가 있으면 저장된 경로 재사용
+                    stored_path = globals().get("_preferred_font_path")
+                    if stored_path:
+                        font_path = stored_path
+                    else:
+                        # 컨텍스트만 열리고 경로가 없는 경우 재생성
+                        _font_file_context = resources.as_file(pkg_font_path)
+                        real_path = _font_file_context.__enter__()
+                        font_path = str(real_path.resolve())
             except Exception:
                 font_path = None
-        logger.debug(f"자동 탐색된 폰트 경로: {font_path}")
+
+        # 3. 시스템 폰트 폴백 (Windows: Malgun Gothic)
+        if font_path is None or (font_path and not Path(font_path).exists()):
+            if sys.platform.startswith("win"):
+                font_family = "Malgun Gothic"
+            logger.debug(f"로컬 폰트 없음, 시스템 폰트 사용: {font_family}")
+        else:
+            logger.debug(f"자동 탐색된 폰트 경로: {font_path}")
 
     # 우선순위: font_path > font_family
     if font_path:
@@ -261,20 +288,37 @@ def matplotlib_font_set(
         local_font_path = Path(__file__).parent / "fonts" / "NanumGothic.ttf"
 
         if local_font_path.exists():
-            font_path = str(local_font_path)
+            font_path = str(local_font_path.resolve())  # 절대 경로로 변환
         else:
             # 2. pip 배포 환경: 패키지 내부 fonts 폴더
             try:
                 import importlib.resources as resources
 
-                font_path = str(
-                    resources.files("helper_plot_hangul").joinpath("fonts/NanumGothic.ttf")
+                pkg_font_path = resources.files("helper_plot_hangul").joinpath(
+                    "fonts/NanumGothic.ttf"
                 )
+                # resources는 가상 경로일 수 있으므로 as_file로 실제 경로 확보
+                # 전역 컨텍스트로 유지하여 ZIP 배포 시에도 파일이 삭제되지 않도록 함
+                global _font_file_context
+                if _font_file_context is None:
+                    _font_file_context = resources.as_file(pkg_font_path)
+                    real_path = _font_file_context.__enter__()
+                    font_path = str(real_path.resolve())
+                else:
+                    # 이미 열린 컨텍스트가 있으면 저장된 경로 재사용
+                    stored_path = globals().get("_preferred_font_path")
+                    if stored_path:
+                        font_path = stored_path
+                    else:
+                        # 컨텍스트만 열리고 경로가 없는 경우 재생성
+                        _font_file_context = resources.as_file(pkg_font_path)
+                        real_path = _font_file_context.__enter__()
+                        font_path = str(real_path.resolve())
             except Exception:
                 font_path = None
 
         # 3. 시스템 폰트 폴백 (Windows: Malgun Gothic)
-        if font_path is None or not Path(font_path).exists():
+        if font_path is None or (font_path and not Path(font_path).exists()):
             if sys.platform.startswith("win"):
                 font_family = "Malgun Gothic"
             logger.debug(f"로컬 폰트 없음, 시스템 폰트 사용: {font_family}")
@@ -296,12 +340,93 @@ def matplotlib_font_set(
     return font_family
 
 
+def matplotlib_font_get() -> dict[str, str | None]:
+    """matplotlib_font_reset 또는 matplotlib_font_set로 설정된 현재 폰트 정보 반환.
+
+    설정되기 전이라도 한글 폰트의 절대 경로를 자동 탐색하여 반환합니다.
+
+    Returns
+    -------
+    dict[str, str | None]
+        - 'font_family': 폰트 패밀리 이름
+        - 'font_path': 폰트 파일 절대 경로 (없으면 None)
+
+    Notes
+    -----
+    반환된 font_path는 matplotlib 내에서 사용하기에 안전합니다.
+    다른 라이브러리(PIL, reportlab 등)에서 사용 시 주의사항:
+
+    - **개발 환경**: 로컬 파일 경로이므로 안전하게 사용 가능
+    - **pip 설치 환경**: 일반적으로 안전하게 사용 가능
+    - **ZIP 배포 환경**: 경로가 일시적일 수 있으므로 즉시 사용 권장
+
+    다른 라이브러리에서 사용 예시::
+
+        from PIL import ImageFont
+        font_info = matplotlib_font_get()
+        if font_info['font_path']:
+            pil_font = ImageFont.truetype(font_info['font_path'], size=12)
+
+    Examples
+    --------
+    >>> font_info = matplotlib_font_get()
+    >>> print(font_info['font_family'])
+    'NanumGothic'
+    >>> print(font_info['font_path'])
+    'd:\\project\\helper\\helper_plot_hangul\\src\\helper_plot_hangul\\fonts\\NanumGothic.ttf'
+    """
+    font_family = globals().get("_preferred_font_family")
+    font_path = globals().get("_preferred_font_path")
+
+    # 설정되지 않은 경우 자동 탐색
+    if font_path is None and font_family is None:
+        font_family = "NanumGothic"
+        # 1. 개발 환경: 로컬 fonts 폴더 확인
+        local_font_path = Path(__file__).parent / "fonts" / "NanumGothic.ttf"
+
+        if local_font_path.exists():
+            font_path = str(local_font_path.resolve())
+        else:
+            # 2. pip 배포 환경: 패키지 내부 fonts 폴더
+            try:
+                pkg_font_path = resources.files("helper_plot_hangul").joinpath(
+                    "fonts/NanumGothic.ttf"
+                )
+                # resources는 가상 경로일 수 있으므로 as_file로 실제 경로 확보
+                # 전역 컨텍스트로 유지하여 ZIP 배포 시에도 파일이 삭제되지 않도록 함
+                global _font_file_context
+                if _font_file_context is None:
+                    _font_file_context = resources.as_file(pkg_font_path)
+                    real_path = _font_file_context.__enter__()
+                    font_path = str(real_path.resolve())
+                else:
+                    # 이미 열린 컨텍스트가 있으면 저장된 경로 재사용
+                    stored_path = globals().get("_preferred_font_path")
+                    if stored_path:
+                        font_path = stored_path
+                    else:
+                        # 컨텍스트만 열리고 경로가 없는 경우 재생성
+                        _font_file_context = resources.as_file(pkg_font_path)
+                        real_path = _font_file_context.__enter__()
+                        font_path = str(real_path.resolve())
+            except Exception:
+                font_path = None
+
+        # 3. 시스템 폰트 폴백 (Windows: Malgun Gothic)
+        if font_path is None or (font_path and not Path(font_path).exists()):
+            if sys.platform.startswith("win"):
+                font_family = "Malgun Gothic"
+            logger.debug(f"로컬 폰트 없음, 시스템 폰트 사용: {font_family}")
+
+    return {"font_family": font_family, "font_path": font_path}
+
+
 def _is_jupyter_environment() -> bool:
     """Jupyter/IPython 환경 여부 확인"""
     try:
-        get_ipython()
+        get_ipython()  # type: ignore
         return True
-    except NameError:
+    except (NameError, Exception):
         return False
 
 
@@ -316,15 +441,19 @@ def _is_streamlit_environment() -> bool:
 
 
 # 환경별 자동 초기화
-if _is_jupyter_environment():
-    matplotlib_font_reset()
-    logger.info("Jupyter/IPython 환경 감지: matplotlib_font_reset() 실행")
-elif _is_streamlit_environment():
-    font_family = matplotlib_font_set()
-    logger.info(f"matplotlib_font_set() 폰트: {font_family}")
-else:
-    font_family = matplotlib_font_set()
-    logger.info(f"matplotlib_font_set() 폰트: {font_family}")
+try:
+    if _is_jupyter_environment():
+        matplotlib_font_reset()
+        logger.info("Jupyter/IPython 환경 감지: matplotlib_font_reset() 실행")
+    elif _is_streamlit_environment():
+        font_family = matplotlib_font_set()
+        logger.info(f"matplotlib_font_set() 폰트: {font_family}")
+    else:
+        font_family = matplotlib_font_set()
+        logger.info(f"matplotlib_font_set() 폰트: {font_family}")
+except Exception:
+    # 자동 초기화 실패 시 조용히 넘어감 (사용자는 수동으로 호출 가능)
+    pass
 
 # 예시 사용법
 if __name__ == "__main__":
