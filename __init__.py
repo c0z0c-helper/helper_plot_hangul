@@ -19,7 +19,7 @@ Matplotlib 한글 폰트 자동 설정 라이브러리
     plt.show()
 """
 
-__version__ = "0.5.5"
+__version__ = "0.5.6"
 
 from .helper_plot_hangul import matplotlib_font_reset, matplotlib_font_set, matplotlib_font_get
 
