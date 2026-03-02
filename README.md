@@ -29,12 +29,9 @@ pip install --index-url https://test.pypi.org/simple/ helper-plot-hangul
 ### 기본 사용법
 
 ```python
-from helper_plot_hangul import matplotlib_font_reset
+import helper_plot_hangul  # import 시 한글 폰트 자동 설정
+import matplotlib.pyplot as plt
 
-# 한글 폰트 자동 설정 (NanumGothic 기본값)
-plt = matplotlib_font_reset()
-
-# 바로 한글 사용 가능
 plt.plot([1, 2, 3], [1, 4, 9])
 plt.title('한글 제목')
 plt.xlabel('X축')
@@ -45,35 +42,43 @@ plt.show()
 ### 사용자 정의 폰트 사용
 
 ```python
-from helper_plot_hangul import matplotlib_font_reset
+from helper_plot_hangul import matplotlib_font_set
+import matplotlib.pyplot as plt
 
 # 시스템 폰트 이름으로 설정
-plt = matplotlib_font_reset(font_family='맑은 고딕')
+matplotlib_font_set(font_family='맑은 고딕')
 
 # 또는 폰트 파일 경로로 설정
-plt = matplotlib_font_reset(font_path='/path/to/font.ttf')
+matplotlib_font_set(font_path='/path/to/font.ttf')
+
+plt.plot([1, 2, 3], [1, 4, 9])
+plt.title('사용자 정의 폰트 한글')
+plt.show()
 ```
 
 ### 추가 옵션 설정
 
 ```python
-from helper_plot_hangul import matplotlib_font_reset
+from helper_plot_hangul import matplotlib_font_set
+import matplotlib.pyplot as plt
 
 # matplotlib rcParams 추가 설정
-plt = matplotlib_font_reset(
+matplotlib_font_set(
     font_family='NanumGothic',
     axes_unicode_minus=False,  # 마이너스 기호 깨짐 방지
     font_size=12,              # 기본 폰트 크기
 )
+
+plt.plot([1, 2, 3], [1, 4, 9])
+plt.title('옵션 적용 한글')
+plt.show()
 ```
 
 ### 스타일과 함께 사용
 
 ```python
-from helper_plot_hangul import matplotlib_font_reset
-
-# 한글 폰트 먼저 설정
-plt = matplotlib_font_reset()
+import helper_plot_hangul  # 한글 폰트 자동 설정
+import matplotlib.pyplot as plt
 
 # 스타일 적용 (한글 폰트 자동 유지)
 plt.style.use('seaborn-v0_8-whitegrid')
@@ -86,12 +91,10 @@ plt.show()
 ### Jupyter/Colab에서 사용
 
 ```python
-from helper_plot_hangul import matplotlib_font_reset
+# 첫 번째 셀에서 1회만 실행
+import helper_plot_hangul
 
-# 최초 1회만 실행
-matplotlib_font_reset()
-
-# 이후 셀에서 plt 바로 사용 가능
+# 이후 모든 셀에서 plt 바로 사용 가능
 import matplotlib.pyplot as plt
 
 plt.plot([1, 2, 3], [1, 4, 9])
@@ -150,9 +153,13 @@ matplotlib를 리셋하지 않고 선호 폰트만 등록하고 즉시 적용합
 ### 한글이 여전히 깨져 보이는 경우
 
 ```python
-# 1. 완전 리셋 시도
+# 1. 완전 리셋 시도 (폰트 캐시 문제 해결)
 from helper_plot_hangul import matplotlib_font_reset
-plt = matplotlib_font_reset()
+matplotlib_font_reset()
+
+import matplotlib.pyplot as plt
+plt.title('리셋 후 한글 확인')
+plt.show()
 
 # 2. 폰트 캐시 수동 삭제 (필요시)
 import matplotlib.font_manager as fm
@@ -162,11 +169,17 @@ fm._get_fontconfig_fonts.cache_clear()
 ### 특정 폰트 사용하고 싶은 경우
 
 ```python
+from helper_plot_hangul import matplotlib_font_set
+import matplotlib.pyplot as plt
+
 # 시스템에 설치된 폰트 사용
-plt = matplotlib_font_reset(font_family='D2Coding')
+matplotlib_font_set(font_family='D2Coding')
 
 # 폰트 파일 직접 지정
-plt = matplotlib_font_reset(font_path='/usr/share/fonts/custom.ttf')
+matplotlib_font_set(font_path='/usr/share/fonts/custom.ttf')
+
+plt.title('커스텀 폰트 한글')
+plt.show()
 ```
 
 ### 사용되는 한글 폰트 경로 가져오기
@@ -222,6 +235,9 @@ MIT License
 ### v0.5.6(2026-01-02)
 - 사용되는 한글 폰트 경로 가져오기
 
+### v0.5.7(2026-03-02)
+- `import helper_plot_hangul` 시 자동 초기화로 표준 사용법 지원
+- `plt = matplotlib_font_reset()` 반환값 할당 없이 `import matplotlib.pyplot as plt` 그대로 사용 가능
 ---
 
 jupyter_hangul를 참고하여 만들어졌습니다.
