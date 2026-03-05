@@ -13,7 +13,7 @@ Matplotlib 한글 폰트 자동 설정 라이브러리
 - **스타일 호환**: matplotlib 스타일 적용 후에도 한글 폰트 자동 유지
 - **Jupyter/Colab 최적화**: IPython 환경에서 완벽하게 작동
 - **NumPy 2.0+ 호환**: 최신 NumPy와 호환되는 안전한 폰트 설정
-- **내장 폰트**: NanumGothic 폰트 포함 (별도 설치 불필요)
+- **내장 폰트**: NanumGothic, NanumBarunGothic 폰트 포함 (별도 설치 불필요)
 
 ## 설치
 
@@ -88,6 +88,22 @@ plt.title('스타일 적용 + 한글')
 plt.show()
 ```
 
+### NanumBarunGothic 폰트 사용
+
+```python
+import helper_plot_hangul  # 기본 폰트: NanumGothic
+import matplotlib.pyplot as plt
+
+# NanumBarunGothic으로 전환
+plt.rc("font", family="NanumBarunGothic")
+
+plt.plot([1, 2, 3], [1, 4, 9])
+plt.title('NanumBarunGothic 한글 제목')
+plt.xlabel('X축')
+plt.ylabel('Y축')
+plt.show()
+```
+
 ### Jupyter/Colab에서 사용
 
 ```python
@@ -118,7 +134,7 @@ matplotlib_font_set(font_family='맑은 고딕', font_size=11)
 matplotlib를 완전히 리셋하고 한글 폰트를 설정합니다.
 
 **Parameters:**
-- `font_family` (str, optional): 사용할 폰트 패밀리 이름 (기본값: 'NanumGothic')
+- `font_family` (str, optional): 사용할 폰트 패밀리 이름 (기본값: `'NanumGothic'`, 추가 폰트: `'NanumBarunGothic'`)
 - `font_path` (str, optional): 폰트 파일 경로. 지정 시 파일에서 폰트 이름 추출
 - `**kwargs`: matplotlib rcParams에 전달할 추가 설정
   - `axes_unicode_minus` (bool): 마이너스 기호 깨짐 방지 (기본값: False)
@@ -238,6 +254,12 @@ MIT License
 ### v0.5.7(2026-03-02)
 - `import helper_plot_hangul` 시 자동 초기화로 표준 사용법 지원
 - `plt = matplotlib_font_reset()` 반환값 할당 없이 `import matplotlib.pyplot as plt` 그대로 사용 가능
+
+### v0.5.8(2026-03-05)
+- `NanumBarunGothic` 폰트 추가
+- `plt.rc("font", family="NanumGothic")` 기본 폰트
+- `plt.rc("font", family="NanumBarunGothic")` 추가 폰트
+
 ---
 
 jupyter_hangul를 참고하여 만들어졌습니다.
