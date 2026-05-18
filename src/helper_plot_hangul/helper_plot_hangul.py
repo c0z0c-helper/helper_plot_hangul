@@ -1,6 +1,5 @@
 """공개 API: matplotlib 한글 폰트 설정 함수."""
 
-import inspect
 import os
 import sys
 from pathlib import Path
@@ -10,7 +9,8 @@ from helper_plot_hangul._env import is_jupyter_environment, is_streamlit_environ
 from helper_plot_hangul._font_resource import matplotlib_font_resource
 from helper_plot_hangul._font_utils import (
     get_preferred,
-    patch_style_use,
+    patch_rcparams_default,
+    patch_rcparams_setitem,
     reapply_font_rcparams,
     set_preferred,
 )
@@ -27,10 +27,15 @@ except ImportError:
 def matplotlib_font_reset(
     font_family: str | None = None, font_path: str | None = None, **kwargs: Any
 ) -> Any:
-    """matplotlib 완전 리셋 (NumPy 호환성 개선).
+    """커널 재시작 없이 한글 폰트를 즉시 적용.
 
-    matplotlib 모듈을 완전히 리로드하고 한글 폰트를 설정합니다.
-    NumPy 2.0+ 호환성을 고려한 안전한 폰트 설정을 수행합니다.
+    sys.modules 삭제 없이 font_manager의 내부 캐시를 무효화하고
+    rcParams를 설정합니다. 기존 matplotlib/seaborn 객체의 클래스 동일성을
+    유지하므로 Jupyter inline backend와 충돌하지 않습니다.
+
+    matplotlib는 findfont() 결과를 내부 LRU 캐시에 저장합니다.
+    단순 addfont() + rcParams 변경만으로는 캐시된 결과가 유지되어 새 폰트가
+    반영되지 않습니다. 이 함수는 해당 캐시를 명시적으로 무효화합니다.
 
     Parameters
     ----------
@@ -44,7 +49,7 @@ def matplotlib_font_reset(
     Returns
     -------
     matplotlib.pyplot
-        리셋되고 한글 폰트가 설정된 pyplot 모듈.
+        한글 폰트가 설정된 pyplot 모듈.
 
     Notes
     -----
@@ -53,6 +58,10 @@ def matplotlib_font_reset(
     2. font_family만 있으면 해당 이름 사용
     3. 둘 다 없으면 'NanumGothic' 기본값 사용
     """
+    import matplotlib
+    import matplotlib.font_manager as fm
+    import matplotlib.pyplot as plt
+
     if (
         isinstance(font_family, (str, bytes, os.PathLike))
         and font_family
@@ -64,25 +73,10 @@ def matplotlib_font_reset(
     default_kwargs: dict = {"axes.unicode_minus": False, "font.size": 10}
     default_kwargs.update(kwargs)
 
-    modules_to_remove = [mod for mod in sys.modules if mod.startswith("matplotlib")]
-    for mod in modules_to_remove:
-        del sys.modules[mod]
-
-    import matplotlib.font_manager as fm
-    import matplotlib.pyplot as plt
-
-    try:
-        fm._get_fontconfig_fonts.cache_clear()
-    except Exception:
-        pass
-    try:
-        fm.fontManager.__init__()
-    except Exception:
-        pass
-
-    # 재로드 후 레지스트리 폰트 재등록
+    # 1. 패키지 번들 폰트 등록
     matplotlib_font_resource.load_all()
 
+    # 2. font_path/font_family 결정
     if font_path is None and font_family is None:
         font_family = "NanumGothic"
         font_path = matplotlib_font_resource.path_of("NanumGothic")
@@ -94,43 +88,54 @@ def matplotlib_font_reset(
         else:
             logger.debug(f"레지스트리 폰트 경로: {font_path}")
 
+    # 3. 폰트 파일을 font_manager에 등록
+    resolved_font_name: str | None = None
     if font_path:
         try:
             fm.fontManager.addfont(font_path)
             fp = fm.FontProperties(fname=font_path)
-            font_name = fp.get_name()
-            plt.rcParams["font.family"] = font_name
-        except Exception:
-            plt.rcParams["font.family"] = font_family if font_family else "NanumGothic"
-    elif font_family:
-        plt.rcParams["font.family"] = font_family
-    else:
-        plt.rcParams["font.family"] = "NanumGothic"
-    logger.debug(f"설정된 폰트 패밀리: {plt.rcParams['font.family']}")
+            resolved_font_name = fp.get_name()
+            logger.debug(f"폰트 파일 등록: {resolved_font_name} ({font_path})")
+        except Exception as e:
+            logger.debug(f"폰트 파일 등록 실패: {e}")
 
-    for key, value in default_kwargs.items():
-        plt.rcParams[key] = value
-
-    # IPython/Jupyter 사용자 네임스페이스에 plt 등록
-    try:
-        if IPYTHON_AVAILABLE:
-            ipy = IPython.get_ipython()
-            if ipy is not None:
-                ipy.user_ns["plt"] = plt
+    # 4. findfont 내부 캐시 무효화 (핵심)
+    # matplotlib는 findfont() 결과를 LRU 캐시에 저장하므로
+    # addfont() 후에도 캐시가 살아있으면 구 폰트가 반환됨
+    _cleared = False
+    # matplotlib 3.5+ : FontManager._findfont_cached
+    if hasattr(fm.fontManager, "_findfont_cached"):
         try:
-            caller = inspect.currentframe().f_back
-            if caller is not None:
-                caller.f_globals["plt"] = plt
+            fm.fontManager._findfont_cached.cache_clear()
+            _cleared = True
+            logger.debug("findfont 캐시 무효화: _findfont_cached.cache_clear()")
         except Exception:
             pass
-        globals()["plt"] = plt
-    except Exception:
-        globals()["plt"] = plt
+    # 대안: fontManager 인스턴스 교체 (font 목록은 유지)
+    if not _cleared:
+        try:
+            # ttflist를 보존하며 fontManager만 재초기화
+            ttflist_backup = list(fm.fontManager.ttflist)
+            fm.fontManager.__init__()
+            # 백업된 폰트 목록 중 새로 추가된 항목 재삽입
+            existing = {e.fname for e in fm.fontManager.ttflist}
+            for entry in ttflist_backup:
+                if entry.fname not in existing:
+                    fm.fontManager.ttflist.append(entry)
+            logger.debug("fontManager 재초기화로 캐시 무효화")
+        except Exception as e:
+            logger.debug(f"fontManager 재초기화 실패: {e}")
 
-    set_preferred(
-        font_path, font_family if font_family else plt.rcParams.get("font.family"), default_kwargs
-    )
-    patch_style_use()
+    # 5. rcParams 적용
+    target_family = resolved_font_name or font_family or "NanumGothic"
+    matplotlib.rcParams["font.family"] = target_family
+    for key, value in default_kwargs.items():
+        matplotlib.rcParams[key] = value
+
+    logger.debug(f"설정된 폰트 패밀리: {matplotlib.rcParams['font.family']}")
+
+    set_preferred(font_path, target_family, default_kwargs)
+    patch_rcparams_setitem()
 
     return plt
 
@@ -169,7 +174,7 @@ def matplotlib_font_set(
             logger.debug(f"레지스트리 폰트 경로: {font_path}")
 
     set_preferred(font_path, font_family, default_kwargs)
-    patch_style_use()
+    patch_rcparams_setitem()
 
     return font_family
 

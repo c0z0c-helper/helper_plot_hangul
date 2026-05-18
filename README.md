@@ -260,6 +260,12 @@ MIT License
 - `plt.rc("font", family="NanumGothic")` 기본 폰트
 - `plt.rc("font", family="NanumBarunGothic")` 추가 폰트
 
+
+### v0.5.9(2026-05-18)
+- `patch_style_use` 함수 추가: `matplotlib.style.use` 호출 후 한글 폰트 자동 재적용
+- `_style_patched` 플래그 추가: 중복 패치 방지
+
+
 ---
 
 jupyter_hangul를 참고하여 만들어졌습니다.

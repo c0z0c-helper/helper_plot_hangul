@@ -22,7 +22,13 @@ Matplotlib 한글 폰트 자동 설정 라이브러리
     plt.show()
 """
 
-__version__ = "0.5.8"
+from helper_plot_hangul.helper_plot_hangul import (
+    matplotlib_font_get,
+    matplotlib_font_reset,
+    matplotlib_font_set,
+)
+from helper_plot_hangul._font_resource import matplotlib_font_resource
+__version__ = "0.5.9"
 
 import os
 import sys
@@ -34,18 +40,13 @@ if str(_project_root) not in sys.path:
     sys.path.insert(0, str(_project_root))
 
 spec = importlib.util.spec_from_file_location(
-    "requirements_rnac", os.path.join(os.path.dirname(__file__), "requirements_rnac.py")
+    "requirements_rnac", os.path.join(
+        os.path.dirname(__file__), "requirements_rnac.py")
 )
 requirements_rnac = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(requirements_rnac)
 requirements_rnac.check_and_print_dependencies()
 
-from helper_plot_hangul._font_resource import matplotlib_font_resource
-from helper_plot_hangul.helper_plot_hangul import (
-    matplotlib_font_get,
-    matplotlib_font_reset,
-    matplotlib_font_set,
-)
 
 __all__ = [
     "matplotlib_font_reset",
