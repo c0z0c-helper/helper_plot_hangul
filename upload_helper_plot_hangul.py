@@ -32,7 +32,10 @@ def build_package():
     result = subprocess.run([sys.executable, "-m", "build"], capture_output=True, text=True)
     
     if result.returncode != 0:
-        print("빌드 실패:")
+        # print("빌드 실패:")
+        # print("--- stdout ---")
+        # print(result.stdout)
+        # print("--- stderr ---")
         print(result.stderr)
         sys.exit(1)
     
