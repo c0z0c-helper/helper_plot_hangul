@@ -2,6 +2,8 @@
 
 Matplotlib 한글 폰트 자동 설정 라이브러리
 
+> **제작 목적**: Colab 또는 Jupyter Notebook에서 plot 관련 한글 폰트 적용 시, **커널 재시작 없이** 즉시 적용하기 위해 만들어진 라이브러리입니다.
+
 ## 개요
 
 `helper-plot-hangul`은 Matplotlib에서 한글을 자동으로 표시할 수 있도록 폰트를 설정해주는 라이브러리입니다. 번거로운 폰트 설정 없이 간단하게 한글 그래프를 그릴 수 있습니다.
@@ -261,10 +263,10 @@ MIT License
 - `plt.rc("font", family="NanumBarunGothic")` 추가 폰트
 
 
-### v0.5.9(2026-05-18)
+### v0.5.10(2026-06-01)
 - `patch_style_use` 함수 추가: `matplotlib.style.use` 호출 후 한글 폰트 자동 재적용
 - `_style_patched` 플래그 추가: 중복 패치 방지
-
+- README 업데이트: 스타일 적용 후에도 한글 폰트 유지 가능하도록 설명 추가
 
 ---
 
