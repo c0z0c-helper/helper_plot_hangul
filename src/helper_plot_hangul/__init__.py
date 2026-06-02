@@ -28,7 +28,7 @@ from helper_plot_hangul.helper_plot_hangul import (
     matplotlib_font_set,
 )
 from helper_plot_hangul._font_resource import matplotlib_font_resource
-__version__ = "0.5.10"
+__version__ = "0.5.11"
 
 import os
 import sys
