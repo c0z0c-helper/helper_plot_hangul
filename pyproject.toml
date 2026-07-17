@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "helper-plot-hangul"
-version = "0.5.11"
+version = "0.5.12"
 description = "Matplotlib 한글 폰트 자동 설정 라이브러리"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -52,7 +52,7 @@ package-dir = {"" = "src"}
 where = ["src"]
 
 [tool.setuptools.package-data]
-helper_plot_hangul = ["fonts/*.ttf"]
+helper_plot_hangul = ["fonts/*.ttf", "py.typed"]
 
 [tool.black]
 line-length = 100
