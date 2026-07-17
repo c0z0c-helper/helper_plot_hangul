@@ -26,6 +26,33 @@ pip install helper-plot-hangul
 pip install --index-url https://test.pypi.org/simple/ helper-plot-hangul
 ```
 
+### 선택 기능 설치
+
+```bash
+# Streamlit 환경 감지가 필요할 때만 설치
+pip install "helper-plot-hangul[streamlit]"
+```
+
+## 개발 및 빌드
+
+이 프로젝트는 개발 환경 관리에 uv를 사용합니다.
+
+```bash
+uv sync
+```
+
+Streamlit extra까지 함께 맞추려면 아래처럼 실행합니다.
+
+```bash
+uv sync --extra streamlit
+```
+
+패키지 빌드는 아래 명령을 사용합니다.
+
+```bash
+uv run python -m build
+```
+
 ## 사용법
 
 ### 기본 사용법
@@ -270,6 +297,9 @@ MIT License
 
 ### v0.5.12(2026-07-17)
 - PEP 561 표준 규격 준수
+
+### v0.6.0(2026-07-17)
+- 개발환경 설정 uv
 
 ---
 
